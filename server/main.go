@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"server/eval"
 	"server/storage"
+	"time"
 )
 
 type HttpApi struct {
@@ -75,5 +76,18 @@ func (a *HttpApi) getHistory(w http.ResponseWriter, r *http.Request) {
 
 	if err := respondWithJSON(w, result, http.StatusOK); err != nil {
 		return
+	}
+}
+
+func main() {
+	a := &HttpApi{evaluator: &eval.IncrementalFakeEvaluator{}, storage: &storage.InMemoryHistoryStorage{}}
+	server := http.Server {
+		Addr: ":8080",
+		ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		Handler: a.Router(),
+	}
+	if err := server.ListenAndServe(); err != nil {
+		panic(err)
 	}
 }
