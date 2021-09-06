@@ -61,6 +61,14 @@ func (a *HttpApi) calculate(w http.ResponseWriter, r *http.Request) {
 		if err := respondWithJSON(w, responseError{err.Error()}, http.StatusOK); err != nil {
 			return
 		}
+		return
+	}
+	if err := a.storage.StoreCalculation(storage.Calculation{
+		Expression: expr,
+		Result:     result,
+	}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	if err := respondWithJSON(w, responseResult{result}, http.StatusOK); err != nil {
 		return
@@ -80,7 +88,9 @@ func (a *HttpApi) getHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	a := &HttpApi{evaluator: &eval.IncrementalFakeEvaluator{}, storage: &storage.InMemoryHistoryStorage{}}
+	a := &HttpApi{evaluator: &eval.IncrementalFakeEvaluator{}, storage: &storage.InMemoryHistoryStorage{
+		Calculations: make([]storage.Calculation, 0),
+	}}
 	server := http.Server {
 		Addr: ":8080",
 		ReadTimeout: 10 * time.Second,
