@@ -88,7 +88,7 @@ func (a *HttpApi) getHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	a := &HttpApi{evaluator: &eval.IncrementalFakeEvaluator{}, storage: &storage.InMemoryHistoryStorage{
+	a := &HttpApi{evaluator: &eval.SmartEvaluator{}, storage: &storage.InMemoryHistoryStorage{
 		Calculations: make([]storage.Calculation, 0),
 	}}
 	server := http.Server {
@@ -97,6 +97,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		Handler: a.Router(),
 	}
+    println("Running server")
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)
 	}
