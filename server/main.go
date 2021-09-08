@@ -1,9 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"net/http"
 	"server/eval"
 	"server/storage"
@@ -92,9 +94,13 @@ func (a *HttpApi) getHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	a := &HttpApi{evaluator: &eval.SmartEvaluator{}, storage: &storage.InMemoryHistoryStorage{
-		Calculations: make([]storage.Calculation, 0),
-	}}
+	connStr := "user=postgres password=123 host=localhost dbname=postgres sslmode=disable"
+	conn, err := sql.Open("postgres", connStr)
+	if err != nil {
+		panic(err)
+	}
+
+	a := &HttpApi{evaluator: &eval.SmartEvaluator{}, storage: storage.New(conn)}
 	server := http.Server {
 		Addr: ":8080",
 		ReadTimeout: 10 * time.Second,
