@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type DataBaseHistoryStorage struct {
@@ -21,9 +20,7 @@ const queryStoreCalculation = `
 `
 
 func (p *DataBaseHistoryStorage) StoreCalculation(c Calculation) error {
-	fmt.Println("kek1 ", c.Expression, " ", c.Result)
-	row := p.conn.QueryRow(queryStoreCalculation, 1, 2)
-	fmt.Println("kek2")
+	row := p.conn.QueryRow(queryStoreCalculation, c.Expression, c.Result)
 	err := row.Scan()
 	if err != nil {
 		return err
@@ -32,7 +29,7 @@ func (p *DataBaseHistoryStorage) StoreCalculation(c Calculation) error {
 }
 
 const queryGetHistory = `
-	SELECT (expression, result) FROM history
+	SELECT expression, result FROM history
 `
 
 func (p *DataBaseHistoryStorage) GetHistory() ([]Calculation, error) {

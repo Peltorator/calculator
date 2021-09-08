@@ -94,7 +94,7 @@ func (a *HttpApi) getHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	connStr := "user=postgres password=123 host=db dbname=postgres sslmode=disable"
+	connStr := "user=postgres password=123 host=localhost dbname=postgres sslmode=disable"
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
@@ -102,7 +102,7 @@ func main() {
 
 	a := &HttpApi{evaluator: &eval.SmartEvaluator{}, storage: storage.New(conn)}
 	server := http.Server {
-		Addr: ":8081",
+		Addr: ":8080",
 		ReadTimeout: 10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		Handler: a.Router(),
