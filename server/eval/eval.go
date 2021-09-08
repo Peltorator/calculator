@@ -71,7 +71,7 @@ func (ev *SmartEvaluator) Evaluate(expr string) (string, error) {
     if err != nil {
         return "", err
     }
-    return fmt.Sprintf("%.4g", result), nil
+    return fmt.Sprintf("%.10g", result), nil
 }
 
 func sliceToInt(expr *string, leftBound int, rightBound int) (float64, error) {
