@@ -20,8 +20,7 @@ const queryStoreCalculation = `
 `
 
 func (p *DataBaseHistoryStorage) StoreCalculation(c Calculation) error {
-	row := p.conn.QueryRow(queryStoreCalculation, c.Expression, c.Result)
-	err := row.Scan()
+	_, err := p.conn.Exec(queryStoreCalculation, c.Expression, c.Result)
 	if err != nil {
 		return err
 	}
