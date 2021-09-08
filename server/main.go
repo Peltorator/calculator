@@ -1,9 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"net/http"
 	"server/eval"
 	"server/storage"
@@ -45,18 +47,22 @@ type responseResult struct {
 	Result string
 }
 
+type requestCalculate struct {
+	Expression string
+}
+
 func (a *HttpApi) calculate(w http.ResponseWriter, r *http.Request) {
-	var expr string
-	if err := json.NewDecoder(r.Body).Decode(&expr); err != nil {
+	var calc requestCalculate
+	if err := json.NewDecoder(r.Body).Decode(&calc); err != nil {
 		if err := respondWithJSON(w, responseError{
-			fmt.Sprintf("Request is not a string: %v", err.Error())},
+			fmt.Sprintf("Invalid request: %v", err.Error())},
 			http.StatusBadRequest); err != nil {
 			return
 		}
 		return
 	}
 
-	result, err := a.evaluator.Evaluate(expr)
+	result, err := a.evaluator.Evaluate(calc.Expression)
 	if err != nil {
 		if err := respondWithJSON(w, responseError{err.Error()}, http.StatusOK); err != nil {
 			return
@@ -64,7 +70,7 @@ func (a *HttpApi) calculate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := a.storage.StoreCalculation(storage.Calculation{
-		Expression: expr,
+		Expression: calc.Expression,
 		Result:     result,
 	}); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,9 +94,13 @@ func (a *HttpApi) getHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	a := &HttpApi{evaluator: &eval.SmartEvaluator{}, storage: &storage.InMemoryHistoryStorage{
-		Calculations: make([]storage.Calculation, 0),
-	}}
+	connStr := "user=postgres password=123 host=localhost dbname=postgres sslmode=disable"
+	conn, err := sql.Open("postgres", connStr)
+	if err != nil {
+		panic(err)
+	}
+
+	a := &HttpApi{evaluator: &eval.SmartEvaluator{}, storage: storage.New(conn)}
 	server := http.Server {
 		Addr: ":8080",
 		ReadTimeout: 10 * time.Second,
